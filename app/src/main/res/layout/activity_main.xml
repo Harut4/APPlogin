@@ -26,14 +26,14 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/label_text_Login"
-                    android:id="@+id/textViewLogin"
+                    android:text="@string/label_text_Username"
+                    android:id="@+id/textViewUsername"
                     android:layout_column="0" />
 
                 <EditText
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/editTextLogin"
+                    android:id="@+id/editTextUsername"
                     android:layout_column="1" />
             </TableRow>
 
@@ -66,8 +66,8 @@
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/button_text_Save"
-                android:id="@+id/buttonSave"
+                android:text="@string/button_text_Login"
+                android:id="@+id/buttonLogin"
                 android:layout_alignParentTop="true"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true" />
@@ -80,6 +80,35 @@
                 android:layout_alignParentTop="true"
                 android:layout_alignParentRight="true"
                 android:layout_alignParentEnd="true" />
+
+            <com.facebook.login.widget.LoginButton
+                android:id="@+id/buttonFacebook"
+                android:text="@string/button_text_Facebook"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_above="@+id/buttonVK"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true" />
+                />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/button_text_VK"
+                android:id="@+id/buttonVK"
+                android:layout_above="@+id/buttonGooglePlus"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/button_text_Google_Plus"
+                android:id="@+id/buttonGooglePlus"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true" />
+
         </RelativeLayout>
 
     </LinearLayout>

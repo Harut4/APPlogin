@@ -2,8 +2,14 @@
     <string name="app_name">APPlogin</string>
 
     <string name="action_settings">Settings</string>
-    <string name="button_text_Save">Save</string>
+    <string name="button_text_Login">Log in</string>
     <string name="button_text_Exit">Exit</string>
-    <string name="label_text_Login">Login</string>
+    <string name="button_text_Facebook">Facebook</string>
+    <string name="button_text_Google_Plus">Google+</string>
+    <string name="button_text_VK">VKontakte</string>
+    <string name="label_text_Username">Username</string>
     <string name="label_text_Password">Password</string>
+    <string name="label_text_Or">Or Log in with:</string>
+    <string name="facebook_app_id">1631436560407560</string>
+
 </resources>
