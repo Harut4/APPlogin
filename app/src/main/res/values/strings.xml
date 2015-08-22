@@ -10,6 +10,7 @@
     <string name="label_text_Username">Username</string>
     <string name="label_text_Password">Password</string>
     <string name="label_text_Or">Or Log in with:</string>
+
     <string name="facebook_app_id">1631436560407560</string>
     <integer name="com_vk_sdk_AppId">5040457</integer>
 

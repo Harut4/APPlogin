@@ -27,6 +27,7 @@ import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
+import com.vk.sdk.VKSdk;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
@@ -45,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private CallbackManager callbackManager;    //Facebook Callback Manager
     private static int requestCodeFacebook; //Facebook Activity Result request code
 
-    private static final int requestCodeGooglePlus = 1111; //Need to specify the requestCode for the startResolutionForResult(this, int ReqCode);
+    private static final int requestCodeGooglePlus = 888888; //Need to specify the requestCode for the startResolutionForResult(this, int ReqCode);
 
 
     //From where the login can be made
@@ -60,9 +61,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         Context appContext = getApplicationContext();
 
-       // VKSdk.initialize(appContext);
-        //System.out.println("VkSDK init");
-
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -76,11 +74,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         callbackManager = CallbackManager.Factory.create();
         System.out.println("CallbackManager");
 
+        VKSdk.initialize(appContext);
+        System.out.println("VkSDK init");
 
         setContentView(R.layout.activity_main);
         System.out.println("Set content view");
-
-
 
         getInit(); // initialize UI elements
         System.out.println("UI init");
@@ -143,29 +141,38 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 googlePlusLogin();
             }
         });
+        echo("Google Plus Button Setup Completed");
     }
 
     private void googlePlusLogin() {
+        echo("Entering G+ login");
         if (!mGoogleApiClient.isConnecting()) {
             signedInUser = true;
             resolveSignInError();
+            echo("calling resolveSigninError");
         }
     }
 
     private void googlePlusLogout() {
+        echo("Entering G+ logout");
         if (mGoogleApiClient.isConnected()) {
             Plus.AccountApi.clearDefaultAccount(mGoogleApiClient);
             mGoogleApiClient.disconnect();
             mGoogleApiClient.connect();
+            echo("Logging out");
         }
     }
 
-        private void resolveSignInError() {
+    private void resolveSignInError() {
+        echo("Entering resolveSignInError");
         if (mConnectionResult.hasResolution()) {
+            echo("it has Resolution");
             try {
                 mIntentInProgress = true;
                 mConnectionResult.startResolutionForResult(this, requestCodeGooglePlus);
+                echo("Started Resolution For Result");
             } catch (IntentSender.SendIntentException e) {
+                echo("SendIntentException caught");
                 mIntentInProgress = false;
                 mGoogleApiClient.connect();
             }
@@ -174,12 +181,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onConnected(Bundle arg0) {
+        System.out.println("Entering onConnected");
         signedInUser = false;
         Toast.makeText(this, "Connected", Toast.LENGTH_LONG).show();
         getProfileInformation();
     }
 
     private void getProfileInformation() {
+        echo("Entering getProfileinformation");
         try {
             if (Plus.PeopleApi.getCurrentPerson(mGoogleApiClient) != null) {
                 Person currentPerson = Plus.PeopleApi.getCurrentPerson(mGoogleApiClient);
@@ -195,12 +204,15 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onConnectionSuspended(int i) {
+        echo("ConnectionSuspended");
         mGoogleApiClient.connect();
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult result) {
+        echo("Entering onConnectionFailed");
         if (!result.hasResolution()) {
+            echo("Hasn't resolution");
             GooglePlayServicesUtil.getErrorDialog(result.getErrorCode(), this, 0).show();
             System.out.println("onConnectionFailed error");
             return;
@@ -216,11 +228,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
 
     protected void onStart() {
+        echo("Entering onStart");
         super.onStart();
         mGoogleApiClient.connect();
     }
 
     protected void onStop() {
+        echo("Entering onStop");
         super.onStop();
         if (mGoogleApiClient.isConnected()) {
             mGoogleApiClient.disconnect();
@@ -255,19 +269,25 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     public void exit(){
+        googlePlusLogout();
         finish();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        echo("Entering onActivityResult");
        if(requestCode == requestCodeFacebook) {
+           echo("RequestCode Facebook");
             callbackManager.onActivityResult(requestCode, resultCode, data);
         } else if(requestCode == requestCodeGooglePlus){
+           echo("RequestCode GooglePlus");
              if (resultCode == RESULT_OK) {
+                 echo("ResultCode OK");
                     signedInUser = false;
                 }
                 mIntentInProgress = false;
                 if (!mGoogleApiClient.isConnecting()) {
+                    echo("mGoogleApiClient is not Connecting");
                     mGoogleApiClient.connect();
                 }
         } /*else if(requestCode == ){
@@ -297,5 +317,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public static void echo(String s){
+        System.out.println(s);
     }
 }
