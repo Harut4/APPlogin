@@ -53,6 +53,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private static int requestCodeFacebook; //Facebook Activity Result request code
 
     private static final int requestCodeGooglePlus = 888888; //Need to specify the requestCode for the startResolutionForResult(this, int ReqCode);
+    /* Is there a ConnectionResult resolution in progress? */
+    private boolean mIsResolving = false;
+    /* Should we automatically resolve ConnectionResults when possible? */
+    private boolean mShouldResolve = false;
+
 
     private static final String TAG = "MyActivity";
 
@@ -153,6 +158,94 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     private void googlePlusLogin() {
+        // User clicked the sign-in button, so begin the sign-in process and automatically
+        // attempt to resolve any errors that occur.
+        mShouldResolve = true;
+        mGoogleApiClient.connect();
+    }
+
+    private void googlePlusLogout() {
+        echo("Entering G+ logout");
+        if (mGoogleApiClient.isConnected()) {
+            Plus.AccountApi.clearDefaultAccount(mGoogleApiClient);
+            mGoogleApiClient.disconnect();
+            mGoogleApiClient.connect();
+            echo("Logging out");
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mGoogleApiClient.disconnect();
+    }
+
+    public void onConnected(Bundle bundle) {
+        // onConnected indicates that an account was selected on the device, that the selected
+        // account has granted any requested permissions to our app and that we were able to
+        // establish a service connection to Google Play services.
+        Log.d(TAG, "onConnected:" + bundle);
+        mShouldResolve = false;
+
+        // Show the signed-in UI
+        //showSignedInUI();
+        Person person = Plus.PeopleApi.getCurrentPerson(mGoogleApiClient);
+        String id = person.getDisplayName();
+        String email = Plus.AccountApi.getAccountName(mGoogleApiClient);
+        login(LoginSource.GOOGLEPLUS, id, email);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        mGoogleApiClient.connect();
+    }
+
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        // Could not connect to Google Play Services.  The user needs to select an account,
+        // grant permissions or resolve an error in order to sign in. Refer to the javadoc for
+        // ConnectionResult to see possible error codes.
+        Log.d(TAG, "onConnectionFailed:" + connectionResult);
+
+        if (!mIsResolving && mShouldResolve) {
+            if (connectionResult.hasResolution()) {
+                try {
+                    connectionResult.startResolutionForResult(this, requestCodeGooglePlus);
+                    mIsResolving = true;
+                } catch (IntentSender.SendIntentException e) {
+                    Log.e(TAG, "Could not resolve ConnectionResult.", e);
+                    mIsResolving = false;
+                    mGoogleApiClient.connect();
+                }
+            } else {
+                // Could not resolve the connection result, show the user an
+                // error dialog.
+                //showErrorDialog(connectionResult);
+            }
+        } else {
+            // Show the signed-out UI
+            //showSignedOutUI();
+        }
+    }
+
+/*/////////////////////////////////
+    public void googlePlusSetup(){
+        buttonGooglePlus = (SignInButton) findViewById(R.id.buttonGooglePlus);
+        buttonGooglePlus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                googlePlusLogin();
+            }
+        });
+        echo("Google Plus Button Setup Completed");
+    }
+
+    private void googlePlusLogin() {
         echo("Entering G+ login");
         if (!mGoogleApiClient.isConnecting()) {
             signedInUser = true;
@@ -234,7 +327,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     }
 
-
     protected void onStart() {
         echo("Entering onStart");
         super.onStart();
@@ -248,6 +340,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             mGoogleApiClient.disconnect();
         }
     }
+    ////////////////////////////////////*/
 
     public void vkSetup(){
         buttonVK = (Button) findViewById(R.id.buttonVK);
@@ -302,25 +395,35 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
        if(requestCode == requestCodeFacebook) {
            echo("RequestCode Facebook");
             callbackManager.onActivityResult(requestCode, resultCode, data);
-        } else if(requestCode == requestCodeGooglePlus){
+        } else if(requestCode == requestCodeGooglePlus) {
            echo("RequestCode GooglePlus");
-             if (resultCode == RESULT_OK) {
-                 echo("ResultCode OK");
-                    signedInUser = false;
-                }
-                mIntentInProgress = false;
-                if (!mGoogleApiClient.isConnecting()) {
-                    echo("mGoogleApiClient is not Connecting");
-                    mGoogleApiClient.connect();
-                }
+           /*if (resultCode == RESULT_OK) {
+               echo("ResultCode OK");
+               signedInUser = false;
+           }
+           mIntentInProgress = false;
+           if (!mGoogleApiClient.isConnecting()) {
+               echo("mGoogleApiClient is not Connecting");
+               mGoogleApiClient.connect();
+           }*/
+           // If the error resolution was not successful we should not resolve further.
+           if (resultCode != RESULT_OK) {
+               mShouldResolve = false;
+           }
+
+           mIsResolving = false;
+           mGoogleApiClient.connect();
         } else {
+           echo("ReqCode VK");
             VKSdk.onActivityResult(requestCode, resultCode, data, new VKCallback<VKAccessToken>() {
             @Override
             public void onResult(VKAccessToken res) {
                 // User passed Authorization
+                //echo(res.accessToken.toString());
                 String email = res.email;
                 String userId = res.userId;
                 login(LoginSource.VK,userId, email);
+                echo("login() VK");
             }
             @Override
             public void onError(VKError error) {
