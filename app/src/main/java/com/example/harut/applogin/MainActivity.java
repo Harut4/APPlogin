@@ -6,6 +6,7 @@ import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -27,7 +28,11 @@ import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
+import com.vk.sdk.VKAccessToken;
+import com.vk.sdk.VKCallback;
+import com.vk.sdk.VKScope;
 import com.vk.sdk.VKSdk;
+import com.vk.sdk.api.VKError;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
@@ -36,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private Button buttonLogin, buttonExit;                //Buttons: Login, Exit
     private LoginButton buttonFacebook;                    //Facebook login Button
     private SignInButton buttonGooglePlus;                 //Google Plus Button
+    private Button buttonVK;
     private SharedPreferences sharedPreferences;           //Shared Preferences object
     private SharedPreferences.Editor sharedPreferencesEditor;   //Editor for the Shared Preferences file
     private GoogleApiClient mGoogleApiClient;
@@ -48,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     private static final int requestCodeGooglePlus = 888888; //Need to specify the requestCode for the startResolutionForResult(this, int ReqCode);
 
+    private static final String TAG = "MyActivity";
 
     //From where the login can be made
     public enum LoginSource{
@@ -94,6 +101,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         buttonExit = (Button) findViewById(R.id.buttonExit);
         facebookSetup();        //facebook button initialization
         googlePlusSetup();
+        vkSetup();
         buttonLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -241,6 +249,20 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     }
 
+    public void vkSetup(){
+        buttonVK = (Button) findViewById(R.id.buttonVK);
+        buttonVK.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                vkLogin();
+            }
+        });
+    }
+
+    public void vkLogin(){
+        VKSdk.login(this, VKScope.EMAIL);
+    }
+
     //Receives login source. Pass any String when not using keys
     public void login(LoginSource loginSource, String key1, String key2){
         sharedPreferences = getSharedPreferences("My_Login_Preferences", MODE_PRIVATE);
@@ -260,7 +282,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 sharedPreferencesEditor.putString("GOOGLEPLUS_EMAIL", key2);
             }
             case VK:{
-
+                sharedPreferencesEditor.putString("VK_User_ID", key1);
+                sharedPreferencesEditor.putString("VK_EMAIL", key2);
             }
         }
         sharedPreferencesEditor.commit();           //Save Preferences
@@ -290,11 +313,23 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     echo("mGoogleApiClient is not Connecting");
                     mGoogleApiClient.connect();
                 }
-        } /*else if(requestCode == ){
-
         } else {
+            VKSdk.onActivityResult(requestCode, resultCode, data, new VKCallback<VKAccessToken>() {
+            @Override
+            public void onResult(VKAccessToken res) {
+                // User passed Authorization
+                String email = res.email;
+                String userId = res.userId;
+                login(LoginSource.VK,userId, email);
+            }
+            @Override
+            public void onError(VKError error) {
+                // User didn't pass Authorization
+                echo("VK onError");
+                }
+            });
 
-        }*/
+        }
     }
 
     @Override
@@ -320,6 +355,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     public static void echo(String s){
-        System.out.println(s);
+        Log.v(TAG, s);
     }
 }
